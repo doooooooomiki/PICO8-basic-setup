@@ -41,7 +41,13 @@ function _init()
 
     update = function(self)
       self:handle_input()
-      self.x = self.x + self.vx
+      if(self.x < -8) then
+        self.x = 127
+      elseif (self.x > 128) then
+        self.x = -7
+      else 
+        self.x = self.x + self.vx
+      end
     end,
 
     draw = function(self)
