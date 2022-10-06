@@ -1,22 +1,6 @@
 Spaceship = {}
 Spaceship.__index = Spaceship
 
--- init
-function Spaceship:init()
-  local player = Spaceship:new({})
-
-  for i = 1, 10 do
-    add(player.bullets, Bullet:new(0, 0))
-  end
-
-  return player
-end
-
--- new
-function Spaceship:new(o)
-  return setmetatable(o, self)
-end
-
 -- bullet pool
 Spaceship.bullets = {}
 
@@ -32,7 +16,26 @@ Spaceship.accel = 0.25
 Spaceship.friction = 0.1
 Spaceship.max_speed = 2.5
 
-function Spaceship:handle_movement()
+-- health
+Spaceship.max_health = 3
+
+-- new Spaceship
+function Spaceship:new(o)
+  return setmetatable(o, self)
+end
+
+-- init Spaceship
+function Spaceship:init()
+  local player = Spaceship:new({})
+
+  for i = 1, 8 do
+    add(player.bullets, Bullet:new(0, 0))
+  end
+
+  return player
+end
+
+function Spaceship:handle_input_left_right()
   local vx = self.vx
   local accel = self.accel
   local friction = self.friction
@@ -49,34 +52,60 @@ function Spaceship:handle_movement()
   self.vx = mid(-max_speed, vx, max_speed)
 end
 
--- health
-Spaceship.max_health = 3
+function Spaceship:prime_non_active_bullet()
+  for bullet in all(self.bullets) do
+    if not bullet.active then bullet:init(self) break end
+  end
+end
 
--- update
-function Spaceship:update()
-  self:handle_movement()
+function Spaceship:handle_input_x()
+  if btnp(5) then self:prime_non_active_bullet() end
+end
 
-  if(self.x < -8) then self.x = 127
-  elseif (self.x > 128) then self.x = -7
-  else self.x = self.x + self.vx end
+function Spaceship:check_bounds()
+  if(self.x < -8) then
+    self.x = 127
+  elseif (self.x > 128) then
+    self.x = -7
+  else 
+    self.x = self.x + self.vx
+  end
+end
 
+function Spaceship:update_bullets()
   for bullet in all(self.bullets) do
     if bullet.active then bullet:update() end
   end
-
 end
 
--- draw
-function Spaceship:draw()
-  spr(001, self.x, self.y)
+-- update
+function Spaceship:update()
+  self:handle_input_left_right()
+  self:check_bounds()
+  self:handle_input_x()
+  self:update_bullets()
+end
+
+function Spaceship:draw_bullets()
   for bullet in all(self.bullets) do
     if bullet.active then bullet:draw() end
   end
 end
 
+-- draw
+function Spaceship:draw()
+  spr(001, self.x, self.y)
+  self:draw_bullets()
+end
+
 
 Bullet = {}
 Bullet.__index = Bullet
+
+-- speed
+Bullet.vy = 0
+Bullet.max_speed = 4
+Bullet.accel = 0.4
 
 -- new
 function Bullet:new(x, y)
@@ -87,10 +116,12 @@ function Bullet:new(x, y)
   return o
 end
 
--- speed
-Bullet.vy = 0
-Bullet.max_speed = 4
-Bullet.accel = 0.4
+-- init
+function Bullet:init(spaceship)
+  self.x = spaceship.x
+  self.y = spaceship.y
+  self.active = true
+end
 
 -- update
 function Bullet:update()
@@ -122,16 +153,6 @@ end
 function _update()
   cls(Screen.background)
   Player:update()
-  if btnp(5) then
-    for bullet in all(Player.bullets) do
-      if not bullet.active then
-        bullet.x = Player.x
-        bullet.y = Player.y
-        bullet.active = true
-        break
-      end
-    end
-  end
 end
 
 function _draw()
