@@ -1,10 +1,24 @@
 Spaceship = {}
 Spaceship.__index = Spaceship
 
+-- init
+function Spaceship:init()
+  local player = Spaceship:new({})
+
+  for i = 1, 10 do
+    add(player.bullets, Bullet:new(0, 0))
+  end
+
+  return player
+end
+
 -- new
 function Spaceship:new(o)
   return setmetatable(o, self)
 end
+
+-- bullet pool
+Spaceship.bullets = {}
 
 -- position
 Spaceship.x = 60
@@ -23,7 +37,7 @@ function Spaceship:handle_movement()
   local accel = self.accel
   local friction = self.friction
   local max_speed = self.max_speed
-    
+
   if btn(0) then
     vx = vx > 0 and -accel or vx - accel
   elseif btn(1) then
@@ -41,20 +55,58 @@ Spaceship.max_health = 3
 -- update
 function Spaceship:update()
   self:handle_movement()
-  if(self.x < -8) then
-    self.x = 127
-  elseif (self.x > 128) then
-    self.x = -7
-  else 
-    self.x = self.x + self.vx
+
+  if(self.x < -8) then self.x = 127
+  elseif (self.x > 128) then self.x = -7
+  else self.x = self.x + self.vx end
+
+  for bullet in all(self.bullets) do
+    if bullet.active then bullet:update() end
   end
+
 end
 
 -- draw
 function Spaceship:draw()
   spr(001, self.x, self.y)
+  for bullet in all(self.bullets) do
+    if bullet.active then bullet:draw() end
+  end
 end
 
+
+Bullet = {}
+Bullet.__index = Bullet
+
+-- new
+function Bullet:new(x, y)
+  local o = setmetatable({}, self)
+  o.x = x
+  o.y = y
+  o.active = false
+  return o
+end
+
+-- speed
+Bullet.vy = 0
+Bullet.max_speed = 4
+Bullet.accel = 0.4
+
+-- update
+function Bullet:update()
+  local vy = self.vy
+  local accel = self.accel
+  local max_speed = self.max_speed
+  vy = vy - accel
+  self.vy = max(-max_speed, vy)
+  self.y = self.y + self.vy
+  if self.y < 0 then self.active = false end
+end
+
+-- draw
+function Bullet:draw()
+  spr(002, self.x, self.y)
+end
 
 
 function _init()
@@ -62,18 +114,29 @@ function _init()
   Screen.minX = 0
   Screen.maxX = 128
   Screen.background = 1
-
-  Player = Spaceship:new({})
-
   cls(Screen.background)
+
+  Player = Spaceship:init()
 end
 
 function _update()
   cls(Screen.background)
   Player:update()
+  if btn(5) then
+    for bullet in all(Player.bullets) do
+      if not bullet.active then
+        bullet.x = Player.x
+        bullet.y = Player.y
+        bullet.active = true
+        break
+      end
+    end
+  end
 end
 
 function _draw()
   Player:draw()
-  spr(2, 60, 60)
+  for bullet in all(Player.bullets) do
+    print(bullet.active)
+  end
 end
