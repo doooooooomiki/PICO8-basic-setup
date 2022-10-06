@@ -1,71 +1,79 @@
+Spaceship = {}
+Spaceship.__index = Spaceship
+
+-- new
+function Spaceship:new(o)
+  return setmetatable(o, self)
+end
+
+-- position
+Spaceship.x = 60
+Spaceship.y = 112
+
+-- movement
+Spaceship.control = false
+Spaceship.vx = 0
+Spaceship.vy = 0
+Spaceship.accel = 0.25
+Spaceship.friction = 0.1
+Spaceship.max_speed = 2.5
+
+function Spaceship:handle_movement()
+  local vx = self.vx
+  local accel = self.accel
+  local friction = self.friction
+  local max_speed = self.max_speed
+    
+  if btn(0) then
+    vx = vx > 0 and -accel or vx - accel
+  elseif btn(1) then
+    vx = vx < 0 and accel or vx + accel
+  elseif vx != 0 then
+    vx += min(abs(vx), friction) * -sgn(vx)
+  end
+
+  self.vx = mid(-max_speed, vx, max_speed)
+end
+
+-- health
+Spaceship.max_health = 3
+
+-- update
+function Spaceship:update()
+  self:handle_movement()
+  if(self.x < -8) then
+    self.x = 127
+  elseif (self.x > 128) then
+    self.x = -7
+  else 
+    self.x = self.x + self.vx
+  end
+end
+
+-- draw
+function Spaceship:draw()
+  spr(001, self.x, self.y)
+end
+
+
+
 function _init()
   Screen = {}
   Screen.minX = 0
   Screen.maxX = 128
   Screen.background = 1
 
-  Ship = {
-
-    -- position
-    x = 60,
-    y = 112,
-
-    -- movement
-    control = false,
-    vx = 0,
-    vy = 0,
-    accel = 0.25,
-    friction = 0.1,
-    max_speed = 2.5,
-
-    -- health
-    max_health = 3,
-
-    -- projectile
-    projectile_speed = -4,
-    projectile_kickback = 1.4,
-
-    handle_input = function(self)
-      local vx, accel, friction, max_speed = self.vx, self.accel, self.friction, self.max_speed
-      if btn(0) then
-        vx = vx > 0 and -accel or vx - accel
-      elseif btn(1) then
-        vx = vx < 0 and accel or vx + accel
-      elseif vx != 0 then
-        vx += min(abs(vx), friction) * -sgn(vx)
-      end
-
-      self.vx = mid(-max_speed, vx, max_speed)
-
-    end,
-
-    update = function(self)
-      self:handle_input()
-      if(self.x < -8) then
-        self.x = 127
-      elseif (self.x > 128) then
-        self.x = -7
-      else 
-        self.x = self.x + self.vx
-      end
-    end,
-
-    draw = function(self)
-      spr(001, self.x, self.y)
-    end
-
-  }
+  Player = Spaceship:new({})
 
   cls(Screen.background)
 end
 
 function _update()
   cls(Screen.background)
-
-  Ship:update()
-
+  Player:update()
 end
 
 function _draw()
-  Ship:draw()
+  Player:draw()
+  spr(2, 60, 60)
 end
