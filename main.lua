@@ -122,7 +122,7 @@ end
 function _update()
   cls(Screen.background)
   Player:update()
-  if btn(5) then
+  if btnp(5) then
     for bullet in all(Player.bullets) do
       if not bullet.active then
         bullet.x = Player.x
