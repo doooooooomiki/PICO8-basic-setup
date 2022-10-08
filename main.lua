@@ -10,12 +10,21 @@ Spaceship = {
   control = false,
   vx = 0,
   vy = 0,
-  accel = 0.25,
-  friction = 0.1,
-  max_speed = 2.5,
+  accel = 1.4,
+  friction = 0.8,
+  max_speed = 4,
 
   -- health
   max_health = 3,
+
+  -- sprite
+  dir = {
+    left = 001,
+    ahead = 002,
+    right = 003,
+  },
+
+  sprite = 002
 }
 
 Spaceship.__index = Spaceship
@@ -29,8 +38,8 @@ end
 function Spaceship:init()
   local player = Spaceship:new({})
 
-  for i = 1, 8 do
-    add(player.bullets, Bullet:new(0, 0))
+  for i = 1, 10 do
+    add(player.bullets, Bullet:new())
   end
 
   return player
@@ -47,10 +56,13 @@ function Spaceship:handle_input_left_right()
   local max_speed = self.max_speed
 
   if btn(0) then
+    self.sprite = self.dir.left
     vx = vx > 0 and -accel or vx - accel
   elseif btn(1) then
+    self.sprite = self.dir.right
     vx = vx < 0 and accel or vx + accel
   elseif vx != 0 then
+    self.sprite = self.dir.ahead
     vx += min(abs(vx), friction) * -sgn(vx)
   end
 
@@ -99,7 +111,7 @@ end
 
 -- draw
 function Spaceship:draw()
-  spr(001, self.x, self.y)
+  spr(self.sprite, self.x, self.y)
   self:draw_bullets()
 end
 
@@ -119,7 +131,7 @@ end
 -- init
 function Bullet:init(entity)
   self.x = entity.x
-  self.y = entity.y
+  self.y = entity.y - 2
   self.active = true
   entity.fire_sfx()
 end
@@ -137,16 +149,11 @@ end
 
 -- draw
 function Bullet:draw()
-  spr(002, self.x, self.y)
+  spr(033, self.x, self.y)
 end
 
 function _init()
-  Screen = {}
-  Screen.minX = 0
-  Screen.maxX = 128
-  Screen.background = 1
-  cls(Screen.background)
-
+  Screen = { background = 0 }
   Player = Spaceship:init()
 end
 
