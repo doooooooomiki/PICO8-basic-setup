@@ -35,6 +35,10 @@ function Spaceship:init()
   return player
 end
 
+function Spaceship.fire_sfx()
+  sfx(00)
+end
+
 function Spaceship:handle_input_left_right()
   local vx = self.vx
   local accel = self.accel
@@ -104,7 +108,7 @@ Bullet.__index = Bullet
 
 -- speed
 Bullet.vy = 0
-Bullet.max_speed = 4
+Bullet.max_speed = 6
 Bullet.accel = 0.4
 
 -- new
@@ -113,10 +117,11 @@ function Bullet:new()
 end
 
 -- init
-function Bullet:init(spaceship)
-  self.x = spaceship.x
-  self.y = spaceship.y
+function Bullet:init(entity)
+  self.x = entity.x
+  self.y = entity.y
   self.active = true
+  entity.fire_sfx()
 end
 
 -- update
@@ -153,7 +158,4 @@ end
 
 function _draw()
   Player:draw()
-  for bullet in all(Player.bullets) do
-    print(bullet.active)
-  end
 end
