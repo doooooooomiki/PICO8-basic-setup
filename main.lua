@@ -108,12 +108,8 @@ Bullet.max_speed = 4
 Bullet.accel = 0.4
 
 -- new
-function Bullet:new(x, y)
-  local o = setmetatable({}, self)
-  o.x = x
-  o.y = y
-  o.active = false
-  return o
+function Bullet:new() 
+  return setmetatable({active = false}, self)
 end
 
 -- init
