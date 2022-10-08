@@ -25,7 +25,11 @@ Spaceship = {
     right = 003,
   },
 
-  spr_spaceship = 002
+  spr_spaceship = 002,
+
+  -- flames
+  flame_counter = 1,
+  spr_flames = {016, 017, 018, 019},
 }
 
 Spaceship.__index = Spaceship
@@ -96,12 +100,20 @@ function Spaceship:update_bullets()
   end
 end
 
+function Spaceship:update_flames()
+  self.flame_counter += 1
+  if self.flame_counter > count(self.spr_flames) then 
+    self.flame_counter = 1 
+  end
+end
+
 -- update
 function Spaceship:update()
   self:handle_input_left_right()
   self:check_bounds()
   self:handle_input_x()
   self:update_bullets()
+  self:update_flames()
 end
 
 function Spaceship:draw_bullets()
@@ -110,10 +122,15 @@ function Spaceship:draw_bullets()
   end
 end
 
+function Spaceship:draw_flames()
+  spr(self.spr_flames[self.flame_counter], self.x, self.y + 8)
+end
+
 -- draw
 function Spaceship:draw()
   spr(self.spr_spaceship, self.x, self.y)
   self:draw_bullets()
+  self:draw_flames()
 end
 
 Bullet = {
