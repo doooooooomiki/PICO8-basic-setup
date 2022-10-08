@@ -119,6 +119,7 @@ Bullet = {
   vy = 0,
   max_speed = 6,
   accel = 0.4,
+  entity = nil,
 }
 
 Bullet.__index = Bullet
@@ -130,10 +131,11 @@ end
 
 -- init
 function Bullet:init(entity)
-  self.x = entity.x
-  self.y = entity.y - 2
+  self.entity = entity
+  self.x = self.entity.x
+  self.y = self.entity.y
   self.active = true
-  entity.fire_sfx()
+  self.entity.fire_sfx()
 end
 
 -- update
