@@ -18,14 +18,14 @@ Spaceship = {
   -- health
   max_health = 3,
 
-  -- sprite
+  -- sprites
   dir = {
     left = 001,
     ahead = 002,
     right = 003,
   },
 
-  sprite = 002
+  spr_spaceship = 002
 }
 
 Spaceship.__index = Spaceship
@@ -57,13 +57,13 @@ function Spaceship:handle_input_left_right()
   local max_speed = self.max_speed
 
   if btn(0) then
-    self.sprite = self.dir.left
+    self.spr_spaceship = self.dir.left
     vx = vx > 0 and -accel or vx - accel
   elseif btn(1) then
-    self.sprite = self.dir.right
+    self.spr_spaceship = self.dir.right
     vx = vx < 0 and accel or vx + accel
   elseif vx != 0 then
-    self.sprite = self.dir.ahead
+    self.spr_spaceship = self.dir.ahead
     vx += min(abs(vx), friction) * -sgn(vx)
   end
 
@@ -112,7 +112,7 @@ end
 
 -- draw
 function Spaceship:draw()
-  spr(self.sprite, self.x, self.y)
+  spr(self.spr_spaceship, self.x, self.y)
   self:draw_bullets()
 end
 
