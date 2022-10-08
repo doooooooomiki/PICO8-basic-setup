@@ -1,6 +1,7 @@
 Spaceship = {
   -- bullet pool
   bullets = {},
+  spr_bullet = 033,
 
   -- position
   x = 60,
@@ -151,7 +152,7 @@ end
 
 -- draw
 function Bullet:draw()
-  spr(033, self.x, self.y)
+  spr(self.entity.spr_bullet, self.x, self.y)
 end
 
 function _init()
