@@ -1,7 +1,12 @@
 Spaceship = {
   -- bullet pool
   bullets = {},
-  spr_bullet = 033,
+
+  name = 'Spaceship',
+
+  bb = nil,
+
+  x_was_pressed = false,
 
   -- position
   x = 60,
@@ -41,17 +46,19 @@ end
 
 -- init Spaceship
 function Spaceship:init()
-  local player = Spaceship:new({})
+  local spaceship = Spaceship:new({})
 
   for i = 1, 10 do
-    add(player.bullets, Bullet:new())
+    add(spaceship.bullets, Bullet:new())
   end
 
-  return player
+  spaceship.bb = Star:new()
+
+  return spaceship
 end
 
 function Spaceship.fire_sfx()
-  sfx(00)
+  -- sfx(00)
 end
 
 function Spaceship:handle_input_left_right()
@@ -81,13 +88,24 @@ function Spaceship:prime_non_active_bullet()
 end
 
 function Spaceship:handle_input_x()
-  if btnp(5) then self:prime_non_active_bullet() end
+  if btn(5) and self.x_was_pressed then
+    self.bb:charge()
+  elseif btn(5) and not self.x_was_pressed then
+    self:prime_non_active_bullet()
+    self.x_was_pressed = true
+  else
+    if self.bb:is_releasable() then
+      self.bb:init(self)
+    end
+    self.bb:reset()
+    self.x_was_pressed = false
+  end
 end
 
 function Spaceship:check_bounds()
-  if(self.x < -8) then
+  if self.x < -8 then
     self.x = 127
-  elseif (self.x > 128) then
+  elseif self.x > 128 then
     self.x = -7
   else 
     self.x = self.x + self.vx
@@ -102,8 +120,8 @@ end
 
 function Spaceship:update_flames()
   self.flame_counter += 1
-  if self.flame_counter > count(self.spr_flames) then 
-    self.flame_counter = 1 
+  if self.flame_counter > count(self.spr_flames) then
+    self.flame_counter = 1
   end
 end
 
@@ -114,6 +132,7 @@ function Spaceship:update()
   self:handle_input_x()
   self:update_bullets()
   self:update_flames()
+  if self.bb:is_active() and self.bb:is_releasable() then self.bb:update() end
 end
 
 function Spaceship:draw_bullets()
@@ -131,19 +150,21 @@ function Spaceship:draw()
   spr(self.spr_spaceship, self.x, self.y)
   self:draw_bullets()
   self:draw_flames()
+  if self.bb:is_active() and self.bb:is_releasable() then self.bb:draw() end
 end
 
 Bullet = {
   vy = 0,
   max_speed = 6,
-  accel = 0.4,
+  accel = 4,
   entity = nil,
+  r = 2,
 }
 
 Bullet.__index = Bullet
 
 -- new
-function Bullet:new() 
+function Bullet:new()
   return setmetatable({active = false}, self)
 end
 
@@ -169,7 +190,59 @@ end
 
 -- draw
 function Bullet:draw()
-  spr(self.entity.spr_bullet, self.x, self.y)
+  circfill(self.x + 4, self.y, self.r, 12)
+end
+
+Star = {
+  x = 85,
+  y = 75,
+  a = 0, --angle
+  s = 4 + rnd(4), --size
+  min_s = 2,
+  entity = nil,
+  _is_active = false,
+  counter = 0,
+  counter_max = 24,
+  _is_releasable = false,
+}
+
+Star.__index = Star
+
+function Star:new()
+  return setmetatable({}, self)
+end
+
+function Star:init(entity)
+  self.entity = entity
+  self._is_active = true
+end
+
+function Star:update()
+  self.s = self.min_s + rnd(2) --size
+  self.a += 0.2
+  self.x = self.entity.x + 4
+  self.y = self.entity.y
+end
+
+function Star:draw()
+  circfill(self.x + sin(self.a) * 1, self.y, self.s, 7)
+  circfill(self.x + sin(self.a) * 2, self.y - 1, self.s, 12)
+end
+
+function Star:charge()
+  self.counter += 1
+  if self.counter > self.counter_max then
+    self._is_releasable = true
+  end
+end
+
+function Star:is_releasable() return self._is_releasable end
+
+function Star:is_active() return self._is_active end
+
+function Star:reset()
+  self.counter = 0
+  self._is_releasable = false
 end
 
 function _init()
@@ -184,4 +257,8 @@ end
 
 function _draw()
   Player:draw()
+  print('charging:')
+  local counter = Player.bb.counter
+  if counter > Player.bb.counter_max then counter = Player.bb.counter_max end
+  print(counter, 12)
 end
