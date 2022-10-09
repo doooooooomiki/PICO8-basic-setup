@@ -9,7 +9,7 @@ Spaceship = {
   x_was_pressed = false,
 
   -- position
-  x = 60,
+  x = 42,
   y = 112,
 
   -- movement
@@ -98,7 +98,7 @@ function Spaceship:handle_input_x()
       -- TODO: realease big boy
       self.bb:release()
     end
-    -- self.bb:reset()
+    self.bb:reset_counter()
     self.x_was_pressed = false
   end
 end
@@ -255,8 +255,10 @@ function Star:is_charged() return self._is_charged end
 
 function Star:is_active() return self._is_active end
 
+function Star:reset_counter() self.counter = 0 end
+
 function Star:reset()
-  self.counter = 0
+  self:reset_counter()
   self._is_charged = false
   self._is_active = false
   self._is_released = false
