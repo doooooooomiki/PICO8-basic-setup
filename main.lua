@@ -46,13 +46,13 @@ end
 
 -- init Spaceship
 function Spaceship:init()
-  local spaceship = Spaceship:new({})
+  local spaceship = self:new({})
 
   for i = 1, 10 do
     add(spaceship.bullets, Bullet:new())
   end
 
-  spaceship.bb = Star:new()
+  spaceship.bb = Star:init(spaceship)
 
   return spaceship
 end
@@ -94,10 +94,11 @@ function Spaceship:handle_input_x()
     self:prime_non_active_bullet()
     self.x_was_pressed = true
   else
-    if self.bb:is_releasable() then
-      self.bb:init(self)
+    if self.bb:is_charged() then
+      -- TODO: realease big boy
+      self.bb:release()
     end
-    self.bb:reset()
+    -- self.bb:reset()
     self.x_was_pressed = false
   end
 end
@@ -132,7 +133,7 @@ function Spaceship:update()
   self:handle_input_x()
   self:update_bullets()
   self:update_flames()
-  if self.bb:is_active() and self.bb:is_releasable() then self.bb:update() end
+  if self.bb:is_active() then self.bb:update() end
 end
 
 function Spaceship:draw_bullets()
@@ -150,7 +151,7 @@ function Spaceship:draw()
   spr(self.spr_spaceship, self.x, self.y)
   self:draw_bullets()
   self:draw_flames()
-  if self.bb:is_active() and self.bb:is_releasable() then self.bb:draw() end
+  if self.bb:is_active() then self.bb:draw() end
 end
 
 Bullet = {
@@ -196,14 +197,17 @@ end
 Star = {
   x = 85,
   y = 75,
+  vy = 0,
+  accel = 8,
   a = 0, --angle
   s = 4 + rnd(4), --size
   min_s = 2,
   entity = nil,
-  _is_active = false,
   counter = 0,
   counter_max = 24,
-  _is_releasable = false,
+  _is_active = false,
+  _is_charged = false,
+  _is_released = false,
 }
 
 Star.__index = Star
@@ -213,15 +217,20 @@ function Star:new()
 end
 
 function Star:init(entity)
-  self.entity = entity
-  self._is_active = true
+  local star = self:new()
+  star.entity = entity
+  return star
 end
 
 function Star:update()
   self.s = self.min_s + rnd(2) --size
   self.a += 0.2
   self.x = self.entity.x + 4
-  self.y = self.entity.y
+  if self:is_released() then
+    self.vy = self.vy - self.accel
+  end
+  self.y = self.entity.y + self.vy
+  if self.y < 0 then self:reset() end
 end
 
 function Star:draw()
@@ -230,19 +239,30 @@ function Star:draw()
 end
 
 function Star:charge()
+  if self:is_charged() then return end
   self.counter += 1
   if self.counter > self.counter_max then
-    self._is_releasable = true
+    self._is_charged = true
+    self._is_active = true
   end
 end
 
-function Star:is_releasable() return self._is_releasable end
+function Star:release() self._is_released = true end
+
+function Star:is_released() return self._is_released end
+
+function Star:is_charged() return self._is_charged end
 
 function Star:is_active() return self._is_active end
 
 function Star:reset()
   self.counter = 0
-  self._is_releasable = false
+  self._is_charged = false
+  self._is_active = false
+  self._is_released = false
+  self.x = self.entity.x
+  self.y = self.entity.y
+  self.vy = 0
 end
 
 function _init()
